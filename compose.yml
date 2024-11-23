@@ -1,0 +1,30 @@
+version: '3'
+services:
+  cert-generator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cert-generator:latest
+    container_name: cert-generator
+    volumes:
+      - ./certs:/certs
+
+  springboot:
+    image: ramosh99/spring-boot-app:v1
+    environment:
+      - KC_HTTPS_CERTIFICATE_FILE=/opt/springboot/conf/server.crt
+      - KC_HTTPS_CERTIFICATE_KEY_FILE=/opt/springboot/conf/server.key # Fixed path
+    command:
+      - start
+      - --hostname-strict=false
+      - --https-certificate-file=/opt/springboot/conf/server.crt
+      - --https-certificate-key-file=/opt/springboot/conf/server.key
+      - --verbose
+    volumes:
+      - ./certs:/opt/springboot/conf
+    ports:
+      - "8443:8443"
+    depends_on:
+      - cert-generator
+
+# Removed redundant volumes section since volumes are defined inline
